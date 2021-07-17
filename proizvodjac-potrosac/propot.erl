@@ -1,17 +1,14 @@
 -module(propot).
 -export([init/1, menadzer/2, proizvodjac/1, potrosac/1]).
 
-% init/2 inicijalizacija
 % Funkcija inicijalizuje niti za proizvodjaca, potrosaca i menadzera. Menadzeru prosledjuje
 % maksimalan broj podataka.
-% @param maksimalni broj podataka
 init(L) ->
 	Menadzer = spawn(?MODULE, menadzer, [0, L]),
 	spawn(?MODULE, proizvodjac, [Menadzer]),
 	spawn(?MODULE, potrosac, [Menadzer]),
 	ok.
 
-% menadzer/2 kontrolisanje proizvodjaca i potrosaca
 % Kontrolisu se proizvodjaci i potrosaci tako da se ne moze proizvesti vise stvari ukoliko je
 % buffer pun i ne mogu se trositi stvari ukoliko je buffer prazan.
 menadzer(0, L) ->
@@ -45,7 +42,8 @@ menadzer(K, L) ->
 			menadzer(K - 1, L)
 	end.
 
-% proizvodjac/1 proizvodi stvari u bufferu
+% Proizvodjac salje poruku menadzeru za svaku proizvedenu stvar i dobija ok ili nok odgovor
+% ukoliko u zamisljenom baferu ima ili nema mesta.
 proizvodjac(Menadzer) ->
 	Menadzer ! {self(), proizvedi},
 	receive
@@ -57,7 +55,8 @@ proizvodjac(Menadzer) ->
 	timer:sleep(rand:uniform(1000)),
 	proizvodjac(Menadzer).
 
-% potrosac/1 trosi stvari iz buffera
+% Potrosac salje poruku menadzeru kada zeli da trosi stvari i dobija ok ili nok odgovor ukoliko
+% u baferu ima ili nema stvari.
 potrosac(Menadzer) ->
 	Menadzer ! {self(), potrosi},
 	receive
