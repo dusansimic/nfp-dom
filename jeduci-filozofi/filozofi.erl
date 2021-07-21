@@ -1,13 +1,11 @@
 -module(filozofi).
--export([init/0, stop/1]).
+-export([init/1, stop/1]).
 
 % Inicijalizuju se svi procesi za viljuske (kojih ima 5) i filozofe (kojih ima 5).
-init() ->
-	Viljuske = napravi_viljuske(5),
-	Filozofi = napravi_filozofe(
-		["Aristotel", "Kant", "Spinoza", "Marks", "Rasel"],
-		Viljuske
-	),
+% ["Aristotel", "Kant", "Spinoza", "Marks", "Rasel"]
+init(Imena) ->
+	Viljuske = napravi_viljuske(length(Imena)),
+	Filozofi = napravi_filozofe(Imena, Viljuske),
 	[spawn(F) || F <- Filozofi].
 
 stop(Filozofi) -> [F ! stop || F <- Filozofi].
