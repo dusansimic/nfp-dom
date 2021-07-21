@@ -1,5 +1,5 @@
 -module(filozofi).
--export([init/0]).
+-export([init/0, stop/1]).
 
 % Inicijalizuju se svi procesi za viljuske (kojih ima 5) i filozofe (kojih ima 5).
 init() ->
@@ -8,8 +8,9 @@ init() ->
 		["Aristotel", "Kant", "Spinoza", "Marks", "Rasel"],
 		Viljuske
 	),
-	[spawn(F) || F <- Filozofi],
-	ok.
+	[spawn(F) || F <- Filozofi].
+
+stop(Filozofi) -> [F ! stop || F <- Filozofi].
 
 % Pravljenje viljuski
 napravi_viljuske(N) when N > 0 -> napravi_viljuske(N, []).
@@ -29,6 +30,9 @@ viljuska(Id, slobodna) ->
 	end;
 viljuska(Id, zauzeta) ->
 	receive
+		{Od, uzmi} ->
+			Od ! nok,
+			viljuska(Id, zauzeta);
 		{Od, ostavi} ->
 			Od ! ok,
 			viljuska(Id, slobodna)
@@ -38,7 +42,8 @@ viljuska(Id, zauzeta) ->
 uzmi(Viljuska) ->
 	Viljuska ! {self(), uzmi},
 	receive
-		ok -> ok
+		ok -> ok;
+		nok -> nok
 	end.
 
 % Funkcija za enkapsulaciju ostavljanja viljuske.
@@ -64,20 +69,40 @@ napravi_filozofe([Hi|Ti], [Lv,Dv|Vl], Fl) ->
 % Filozof na samom pocetku misli, zatim uzima levu pa desnu viljusku jer je gladan i krece da
 % jede. Kada zavrsi sa jelom ostavlja levu pa desnu viljusku i zapocinje ponovo proces.
 filozof(Ime, [Leva, Desna]) ->
-	io:format("~s misli.~n", [Ime]),
-	timer:sleep(rand:uniform(1000)),
-	io:format("~s je gladan.~n", [Ime]),
+	receive
+		stop -> io:format("~s izlazi.~n", [Ime]), ok
+	after 0 ->
+		io:format("~s misli.~n", [Ime]),
+		timer:sleep(rand:uniform(1000)),
+		io:format("~s je gladan.~n", [Ime]),
 
-	uzmi(Leva),
-	uzmi(Desna),
+		case uzmi(Leva) of
+			nok ->
+				io:format("Leva viljuska je zauzeta. ~s ide da misli.~n", [Ime]),
+				filozof(Ime, [Leva, Desna]);
+			ok ->
+				io:format("~s je uzeo levu viljusku.~n", [Ime])
+		end,
 
-	io:format("~s jede.~n", [Ime]),
-	timer:sleep(rand:uniform(1000)),
+		case uzmi(Desna) of
+			nok ->
+				ostavi(Leva),
+				io:format("Desna viljuska je zauzeta. ~s je ostavio levu viljusku i ide da misli.~n", [Ime]),
+				filozof(Ime, [Leva, Desna]);
+			ok ->
+				io:format("~s je uzeo desnu viljusku.~n", [Ime])
+		end,
 
-	ostavi(Leva),
-	ostavi(Desna),
+		io:format("~s jede.~n", [Ime]),
+		timer:sleep(rand:uniform(1000)),
 
-	filozof(Ime, [Leva, Desna]).
+		ostavi(Leva),
+		io:format("~s je ostavio levu viljusku.~n", [Ime]),
+		ostavi(Desna),
+
+		filozof(Ime, [Leva, Desna])
+	end.
+
 
 % Na kraj prebacuje prvi element na kraj da bi se prilikom pravljenja liste filozofa moglo doci
 % do odgovarajuceg redosleda viljuski.
