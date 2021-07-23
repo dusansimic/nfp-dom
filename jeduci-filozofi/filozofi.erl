@@ -3,7 +3,7 @@
 
 % Inicijalizuju se svi procesi za viljuske (kojih ima 5) i filozofe (kojih ima 5).
 % ["Aristotel", "Kant", "Spinoza", "Marks", "Rasel"]
-init(Imena) ->
+init(Imena) when length(Imena) > 1 ->
 	Viljuske = napravi_viljuske(length(Imena)),
 	Filozofi = napravi_filozofe(Imena, Viljuske),
 	[spawn(F) || F <- Filozofi].
