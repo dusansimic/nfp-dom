@@ -6,9 +6,11 @@
 init(Imena) when length(Imena) > 1 ->
 	Viljuske = napravi_viljuske(length(Imena)),
 	Filozofi = napravi_filozofe(Imena, Viljuske),
-	[spawn(F) || F <- Filozofi].
+	{Filozofi, [V || {_Id, V} <- Viljuske]}.
 
-stop(Filozofi) -> [F ! stop || F <- Filozofi].
+stop({Filozofi, Viljuske}) ->
+	[F ! stop || F <- Filozofi],
+	[V ! stop || V <- Viljuske].
 
 % Pravljenje viljuski
 napravi_viljuske(N) when N > 0 -> napravi_viljuske(N, []).
@@ -24,7 +26,8 @@ viljuska(Id, slobodna) ->
 	receive
 		{Od, uzmi} ->
 			Od ! ok,
-			viljuska(Id, zauzeta)
+			viljuska(Id, zauzeta);
+		stop -> ok
 	end;
 viljuska(Id, zauzeta) ->
 	receive
@@ -33,7 +36,8 @@ viljuska(Id, zauzeta) ->
 			viljuska(Id, zauzeta);
 		{Od, ostavi} ->
 			Od ! ok,
-			viljuska(Id, slobodna)
+			viljuska(Id, slobodna);
+		stop -> ok
 	end.
 
 % Funkcija za enkapsulaciju uzimanja viljuske.
@@ -57,7 +61,7 @@ napravi_filozofe(Imena, Viljuske) when length(Imena) =:= length(Viljuske) ->
 
 napravi_filozofe([], _, F) -> F;
 napravi_filozofe([Hi|Ti], [Lv,Dv|Vl], Fl) ->
-	Filozof = fun() -> filozof(Hi, [Lv, Dv]) end,
+	Filozof = spawn(fun() -> filozof(Hi, [Lv, Dv]) end),
 	napravi_filozofe(
 		Ti,
 		nakraj([Lv,Dv|Vl], 1),
