@@ -103,6 +103,7 @@ filozof(Ime, [Leva, Desna]) ->
 		ostavi(Leva),
 		io:format("~s je ostavio levu viljusku.~n", [Ime]),
 		ostavi(Desna),
+		io:format("~s je ostavio desnu viljusku.~n", [Ime]),
 
 		filozof(Ime, [Leva, Desna])
 	end.
