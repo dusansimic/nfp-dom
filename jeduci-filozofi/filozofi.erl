@@ -16,7 +16,7 @@ napravi_viljuske(N) when N > 0 -> napravi_viljuske(N, []).
 napravi_viljuske(0, V) -> lists:reverse(V);
 napravi_viljuske(N, V) ->
 	Viljuska = spawn(fun() -> viljuska(N, slobodna) end),
-	napravi_viljuske(N-1, lists:append(V, [Viljuska])).
+	napravi_viljuske(N-1, lists:append(V, [{N, Viljuska}])).
 
 % Viljuska ukoliko je slobodna moze biti samo uzeta a ukoliko je zauzeta moze biti samo
 % ostavljenja.
@@ -64,6 +64,8 @@ napravi_filozofe([Hi|Ti], [Lv,Dv|Vl], Fl) ->
 		lists:append(Fl, [Filozof])
 	).
 
+filozof(Ime, [{IdL, L},{IdD, D}]) when IdL > IdD -> filozof(Ime, [D, L]);
+filozof(Ime, [{_, L},{_, D}]) -> filozof(Ime, [L, D]);
 % Filozof na samom pocetku misli, zatim uzima levu pa desnu viljusku jer je gladan i krece da
 % jede. Kada zavrsi sa jelom ostavlja levu pa desnu viljusku i zapocinje ponovo proces.
 filozof(Ime, [Leva, Desna]) ->
