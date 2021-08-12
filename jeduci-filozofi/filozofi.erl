@@ -68,11 +68,11 @@ napravi_filozofe([Hi|Ti], [Lv,Dv|Vl], Fl) ->
 		lists:append(Fl, [Filozof])
 	).
 
-filozof(Ime, [{IdL, L},{IdD, D}]) when IdL > IdD -> filozof(Ime, [D, L]);
-filozof(Ime, [{_, L},{_, D}]) -> filozof(Ime, [L, D]);
-% Filozof na samom pocetku misli, zatim uzima levu pa desnu viljusku jer je gladan i krece da
-% jede. Kada zavrsi sa jelom ostavlja levu pa desnu viljusku i zapocinje ponovo proces.
-filozof(Ime, [Leva, Desna]) ->
+filozof(Ime, [{IdP, P},{IdD, D}]) when IdP > IdD -> filozof(Ime, [D, P]);
+filozof(Ime, [{_, P},{_, D}]) -> filozof(Ime, [P, D]);
+% Filozof na samom pocetku misli, zatim uzima prvu pa drugu viljusku jer je gladan i krece da
+% jede. Kada zavrsi sa jelom ostavlja prvu pa drugu viljusku i zapocinje ponovo proces.
+filozof(Ime, [Prva, Druga]) ->
 	receive
 		stop -> io:format("~s izlazi.~n", [Ime]), ok
 	after 0 ->
@@ -80,32 +80,32 @@ filozof(Ime, [Leva, Desna]) ->
 		timer:sleep(rand:uniform(1000)),
 		io:format("~s je gladan.~n", [Ime]),
 
-		case uzmi(Leva) of
+		case uzmi(Prva) of
 			nok ->
-				io:format("Leva viljuska je zauzeta. ~s ide da misli.~n", [Ime]),
-				filozof(Ime, [Leva, Desna]);
+				io:format("Prva viljuska je zauzeta. ~s ide da misli.~n", [Ime]),
+				filozof(Ime, [Prva, Druga]);
 			ok ->
-				io:format("~s je uzeo levu viljusku.~n", [Ime])
+				io:format("~s je uzeo prvu viljusku.~n", [Ime])
 		end,
 
-		case uzmi(Desna) of
+		case uzmi(Druga) of
 			nok ->
-				ostavi(Leva),
-				io:format("Desna viljuska je zauzeta. ~s je ostavio levu viljusku i ide da misli.~n", [Ime]),
-				filozof(Ime, [Leva, Desna]);
+				ostavi(Prva),
+				io:format("Druga viljuska je zauzeta. ~s je ostavio prvu viljusku i ide da misli.~n", [Ime]),
+				filozof(Ime, [Prva, Druga]);
 			ok ->
-				io:format("~s je uzeo desnu viljusku.~n", [Ime])
+				io:format("~s je uzeo drugu viljusku.~n", [Ime])
 		end,
 
 		io:format("~s jede.~n", [Ime]),
 		timer:sleep(rand:uniform(1000)),
 
-		ostavi(Leva),
-		io:format("~s je ostavio levu viljusku.~n", [Ime]),
-		ostavi(Desna),
-		io:format("~s je ostavio desnu viljusku.~n", [Ime]),
+		ostavi(Prva),
+		io:format("~s je ostavio prvu viljusku.~n", [Ime]),
+		ostavi(Druga),
+		io:format("~s je ostavio drugu viljusku.~n", [Ime]),
 
-		filozof(Ime, [Leva, Desna])
+		filozof(Ime, [Prva, Druga])
 	end.
 
 
