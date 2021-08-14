@@ -1,5 +1,5 @@
 -module(drug_cartel).
--export([warehouse/0, guard/2, bad_guy/1, fbi/0]).
+-export([warehouse/0]).
 
 guard(Traffickers, Password) ->
 	receive
@@ -39,17 +39,17 @@ warehouse() ->
 	IncorrectPassword = "margherita",
 	Password = "quattro stagioni",
 
-	register(guard, spawn(?MODULE, guard, [[], Password])),
+	register(guard, spawn(fun() -> guard([], Password) end)),
 
-	spawn(?MODULE, bad_guy, [Password]),
-	spawn(?MODULE, bad_guy, [IncorrectPassword]),
-	spawn(?MODULE, bad_guy, [Password]),
-	spawn(?MODULE, bad_guy, [Password]),
-	spawn(?MODULE, bad_guy, [IncorrectPassword]),
-	spawn(?MODULE, bad_guy, [IncorrectPassword]),
-	spawn(?MODULE, bad_guy, [Password]),
+	spawn(fun() -> bad_guy(Password) end),
+	spawn(fun() -> bad_guy(IncorrectPassword) end),
+	spawn(fun() -> bad_guy(Password) end),
+	spawn(fun() -> bad_guy(Password) end),
+	spawn(fun() -> bad_guy(IncorrectPassword) end),
+	spawn(fun() -> bad_guy(IncorrectPassword) end),
+	spawn(fun() -> bad_guy(Password) end),
 
 	timer:sleep(1000),
 
-	spawn(?MODULE, fbi, []),
+	spawn(fun() -> fbi() end),
 	ok.
